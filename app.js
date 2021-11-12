@@ -2,6 +2,7 @@ if (process.env.NODE_ENV !== "production") {
     require('dotenv').config();
 }
 
+
 const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
@@ -14,13 +15,16 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local');
 const User = require('./models/user');
 const helmet = require('helmet');
+
 const mongoSanitize = require('express-mongo-sanitize');
+
+
+
 const userRoutes = require('./routes/users');
 const campgroundRoutes = require('./routes/campgrounds');
 const reviewRoutes = require('./routes/reviews');
-const dbUrl = process.env.DB_URL || 'mongodb://localhost:27017/yelp-camp';
 
-mongoose.connect(dbUrl, {
+mongoose.connect('mongodb://localhost:27017/yelp-camp', {
     useNewUrlParser: true,
     
     useUnifiedTopology: true
@@ -42,20 +46,19 @@ app.set('views', path.join(__dirname, 'views'))
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride('_method'));
 app.use(express.static(path.join(__dirname, 'public')))
+//$ is replaced with _ in the url ex: http://localhost:3000/?$gt=httt&hh=kkkk
 app.use(mongoSanitize({
     replaceWith: '_'
 }))
 
-const secret = process.env.SECRET || 'thisshouldbeabettersecret!';
-
-const sessionConfig = {
-    name: 'session',
-    secret,
+const sessionConfig = {  //check name status in inspect>application>cookies
+    name: 'session',  //deafult name is "connect.sid"...change dat to custom..so that hackers cant find it
+    secret: 'thisshouldbeabettersecret!',
     resave: false,
     saveUninitialized: true,
     cookie: {
-        httpOnly: true,
-        // secure: true,
+        httpOnly: true, //not accessible through js
+        // secure: true, //allows the cookie to work over https sites only
         expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
         maxAge: 1000 * 60 * 60 * 24 * 7
     }
@@ -64,7 +67,7 @@ const sessionConfig = {
 app.use(session(sessionConfig));
 app.use(flash());
 app.use(helmet());
-
+// app.use(helmet({contentSecurityPolicy: false}));
 
 const scriptSrcUrls = [
     "https://stackpath.bootstrapcdn.com/",
@@ -147,8 +150,8 @@ app.use((err, req, res, next) => {
     res.status(statusCode).render('error', { err })
 })
 
-const port = process.env.PORT || 3000;
-
-app.listen(port, () => {
-    console.log(`Serving on port ${port}`)
+app.listen(3000, () => {
+    console.log('Serving on port 3000')
 })
+
+
